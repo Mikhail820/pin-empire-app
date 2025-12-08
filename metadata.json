@@ -1,0 +1,5 @@
+{
+  "name": "Copy of PinEmpire AI",
+  "description": "A luxury, dark-themed Pinterest automation suite designed for high-end content creators. Generate viral pin concepts, SEO-optimized descriptions, and visual prompts using Gemini AI. Features local database persistence and CSV export.",
+  "requestFramePermissions": []
+}
