@@ -8,7 +8,7 @@ interface AdvisorProps {
 }
 
 export const Advisor: React.FC<AdvisorProps> = ({ recentPins }) => {
-  const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string}[]>([
+  const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string, sources?: {title: string, uri: string}[]}[]>([
       {role: 'ai', text: 'Приветствую. Я ваш стратегический советник по Pinterest. Готов обсудить алгоритмы 2026 года и рост вашей империи. Какой у нас вопрос сегодня?'}
   ]);
   const [input, setInput] = useState('');
@@ -30,8 +30,8 @@ export const Advisor: React.FC<AdvisorProps> = ({ recentPins }) => {
       setIsLoading(true);
 
       try {
-          const answer = await askPinterestGuru(userMsg, recentPins);
-          setMessages(prev => [...prev, {role: 'ai', text: answer}]);
+          const { text, sources } = await askPinterestGuru(userMsg, recentPins);
+          setMessages(prev => [...prev, {role: 'ai', text, sources}]);
       } catch (error) {
           setMessages(prev => [...prev, {role: 'ai', text: 'Связь с сервером стратегии прервана. Попробуйте еще раз.'}]);
       } finally {
@@ -60,7 +60,7 @@ export const Advisor: React.FC<AdvisorProps> = ({ recentPins }) => {
 
         <div className="flex-1 bg-luxury-800/30 border border-gray-800 rounded-2xl p-6 overflow-y-auto space-y-4 mb-4 scrollbar-thin scrollbar-thumb-luxury-gold/20" ref={scrollRef}>
             {messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`max-w-[80%] rounded-2xl px-5 py-3 whitespace-pre-wrap shadow-lg ${
                         msg.role === 'user' 
                             ? 'bg-luxury-gold text-luxury-900 rounded-br-none' 
@@ -68,6 +68,22 @@ export const Advisor: React.FC<AdvisorProps> = ({ recentPins }) => {
                     }`}>
                         {msg.text}
                     </div>
+                    {/* Source Chips */}
+                    {msg.sources && msg.sources.length > 0 && (
+                        <div className="mt-2 max-w-[80%] flex flex-wrap gap-2 animate-fade-in">
+                            {msg.sources.map((src, i) => (
+                                <a 
+                                    key={i} 
+                                    href={src.uri} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] flex items-center gap-1 bg-black/40 hover:bg-black/60 border border-luxury-gold/20 hover:border-luxury-gold/50 text-luxury-goldDim hover:text-luxury-gold px-2 py-1 rounded-full transition-all"
+                                >
+                                    <span>🔗</span> <span className="truncate max-w-[150px]">{src.title}</span>
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
             ))}
             {isLoading && (

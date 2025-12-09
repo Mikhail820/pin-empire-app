@@ -1,4 +1,3 @@
-
 import { HistoryItem, Product, Preset } from '../types';
 
 const DB_NAME = 'PinEmpireDB';
@@ -7,6 +6,12 @@ const BOARDS_STORE = 'boards';
 const PRODUCTS_STORE = 'products';
 const PRESETS_STORE = 'presets';
 const DB_VERSION = 4; // Incremented version
+
+// --- STATIC DATA FOR VERCEL DEPLOYMENT ---
+// Paste the code copied from "Database -> Copy Code" below
+const STATIC_HISTORY_SEED: HistoryItem[] = [];
+const STATIC_PRODUCTS_SEED: Product[] = [];
+// -----------------------------------------
 
 export const initDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
@@ -33,10 +38,44 @@ export const initDB = (): Promise<IDBDatabase> => {
       }
     };
 
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBOpenDBRequest).result);
+    request.onsuccess = async (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      // Attempt to seed if static data exists and DB is likely empty/fresh run
+      await seedDatabaseIfNeeded(db);
+      resolve(db);
     };
   });
+};
+
+const seedDatabaseIfNeeded = async (db: IDBDatabase): Promise<void> => {
+    // We strictly follow the logic: if we have static seeds, we merge them or ensure they exist.
+    // To keep it simple for Vercel: We blindly insert/update static items to ensure they exist.
+    if (STATIC_HISTORY_SEED.length === 0 && STATIC_PRODUCTS_SEED.length === 0) return;
+
+    return new Promise((resolve) => {
+        const transaction = db.transaction([STORE_NAME, PRODUCTS_STORE], 'readwrite');
+        
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => resolve(); // Don't block app on seed fail
+
+        if (STATIC_HISTORY_SEED.length > 0) {
+            const hStore = transaction.objectStore(STORE_NAME);
+            STATIC_HISTORY_SEED.forEach(item => {
+                // Remove ID to let DB auto-increment or keep it if we want exact match
+                // For HistoryItem, ID is number. To avoid conflict, we can just add.
+                // However, user instructions say "books are sewn in".
+                // We'll use put to overwrite if key matches, or add.
+                hStore.put(item); 
+            });
+        }
+
+        if (STATIC_PRODUCTS_SEED.length > 0) {
+            const pStore = transaction.objectStore(PRODUCTS_STORE);
+            STATIC_PRODUCTS_SEED.forEach(prod => {
+                pStore.put(prod);
+            });
+        }
+    });
 };
 
 export const saveHistory = async (topic: string, pins: any[]): Promise<number> => {

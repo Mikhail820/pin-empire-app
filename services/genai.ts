@@ -472,7 +472,12 @@ export const generateBoardSuggestions = async (pins: PinData[], topic: string, e
     }
 };
 
-export const askPinterestGuru = async (question: string, contextPins: PinData[]): Promise<string> => {
+export interface AdvisorResponse {
+  text: string;
+  sources: { title: string; uri: string }[];
+}
+
+export const askPinterestGuru = async (question: string, contextPins: PinData[]): Promise<AdvisorResponse> => {
     const ai = getClient();
     
     const context = contextPins.length > 0 
@@ -484,18 +489,43 @@ export const askPinterestGuru = async (question: string, contextPins: PinData[])
         Tone: Professional, encouraging, wealthy, strategic ("Billionaire mindset").
         Keep answers concise (max 150 words) but highly actionable.
         You can advise on ANY industry (Real Estate, Crypto, Fashion, Services).
+        Use the Google Search tool to find the latest trends if necessary.
     `;
 
     try {
         const response = await callWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: `${context}\n\nQuestion: ${question}`,
-            config: { systemInstruction: system }
+            config: { 
+                systemInstruction: system,
+                tools: [{ googleSearch: {} }] 
+            }
         }));
 
-        return response.text || "I am currently analyzing the market. Please ask again.";
+        const text = response.text || "I am currently analyzing the market. Please ask again.";
+        
+        // Extract sources from grounding metadata
+        const sources: { title: string; uri: string }[] = [];
+        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        
+        if (chunks) {
+            chunks.forEach((chunk: any) => {
+                if (chunk.web) {
+                    sources.push({
+                        title: chunk.web.title || "Reference",
+                        uri: chunk.web.uri
+                    });
+                }
+            });
+        }
+
+        return { text, sources };
     } catch (e) {
-        return "Советник сейчас занят анализом рынков. Повторите запрос позже.";
+        console.error("Advisor Error", e);
+        return { 
+            text: "Советник сейчас занят анализом рынков. Повторите запрос позже.",
+            sources: []
+        };
     }
 };
 

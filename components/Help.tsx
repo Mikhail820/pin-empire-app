@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const Help = () => {
@@ -77,7 +76,7 @@ export const Help = () => {
                     <li>В Telegram найдите <strong>@BotFather</strong> и создайте нового бота командой <code>/newbot</code>.</li>
                     <li>Скопируйте полученный <strong>API Token</strong>.</li>
                     <li>Добавьте созданного бота в ваш канал/чат как участника.</li>
-                    <li><strong>ВАЖНО:</strong> Зайдите в настройки канала -> Администраторы -> Добавить бота. Дайте ему право <strong>"Post Messages"</strong>. Без прав админа бот не сможет писать.</li>
+                    <li><strong>ВАЖНО:</strong> Зайдите в настройки канала &rarr; Администраторы &rarr; Добавить бота. Дайте ему право <strong>"Post Messages"</strong>. Без прав админа бот не сможет писать.</li>
                     <li>В Дашборде (раздел Advanced) введите Токен и ID канала (например <code>@my_channel_name</code>).</li>
                 </ol>
             </p>

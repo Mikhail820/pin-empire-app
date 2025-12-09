@@ -1,6 +1,6 @@
-
-import React, { useRef } from 'react';
-import { HistoryItem } from '../types';
+import React, { useRef, useState, useEffect } from 'react';
+import { HistoryItem, Product } from '../types';
+import { getProducts } from '../services/db';
 
 interface HistoryViewProps {
   history: HistoryItem[];
@@ -11,6 +11,11 @@ interface HistoryViewProps {
 
 export const HistoryView: React.FC<HistoryViewProps> = ({ history, onLoad, onDelete, onImport }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+      getProducts().then(setProducts).catch(console.error);
+  }, []);
 
   const handleExport = () => {
     const data = JSON.stringify(history, null, 2);
@@ -24,6 +29,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ history, onLoad, onDel
     document.body.removeChild(link);
   };
 
+  const handleCopySeedCode = () => {
+      const code = `
+// COPY THIS CODE INTO services/db.ts
+const STATIC_HISTORY_SEED = ${JSON.stringify(history, null, 2)};
+const STATIC_PRODUCTS_SEED = ${JSON.stringify(products, null, 2)};
+// END COPY
+      `;
+      navigator.clipboard.writeText(code.trim());
+      alert("Код скопирован! Теперь вставьте его в services/db.ts вместо пустых массивов STATIC_...");
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           onImport(e.target.files[0]);
@@ -35,7 +51,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ history, onLoad, onDel
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-4 gap-4">
           <h2 className="text-3xl font-serif text-luxury-gold">База Данных Контента</h2>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
               <input 
                   type="file" 
                   ref={fileInputRef}
@@ -56,6 +72,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ history, onLoad, onDel
               >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                   Экспорт (Backup)
+              </button>
+              <button 
+                  onClick={handleCopySeedCode}
+                  className="text-sm font-bold text-green-400 border border-green-500/50 bg-green-900/10 px-4 py-2 rounded-lg hover:bg-green-900/30 transition-all flex items-center gap-2"
+                  title="Подготовить код для вечного хостинга на Vercel"
+              >
+                  📋 Код для Vercel (DB)
               </button>
           </div>
       </div>
