@@ -15,6 +15,9 @@ import { Advisor } from './components/Advisor';
 import { CalendarView } from './components/CalendarView';
 
 export default function App() {
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [isCheckingKey, setIsCheckingKey] = useState(true);
+
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
   const [generatedPins, setGeneratedPins] = useState<PinData[]>([]);
   // NEW: State to hold boards generated in the single shot
@@ -47,6 +50,26 @@ export default function App() {
     generationMode: 'variations',
     targetPlatform: 'Pinterest' as any
   });
+
+  // API Key Check
+  useEffect(() => {
+    const checkKey = async () => {
+       try {
+         if ((window as any).aistudio && (window as any).aistudio.hasSelectedApiKey) {
+            const has = await (window as any).aistudio.hasSelectedApiKey();
+            setHasApiKey(has);
+         } else {
+            // If not in AI Studio (e.g. Vercel or Local), we assume process.env.API_KEY is configured
+            setHasApiKey(true);
+         }
+       } catch (e) {
+         setHasApiKey(true);
+       } finally {
+         setIsCheckingKey(false);
+       }
+    };
+    checkKey();
+  }, []);
 
   useEffect(() => {
     refreshHistory();
@@ -252,6 +275,57 @@ export default function App() {
           }
       }
   };
+
+  // API Key Connection Handler
+  const handleConnectApiKey = async () => {
+    if ((window as any).aistudio && (window as any).aistudio.openSelectKey) {
+        await (window as any).aistudio.openSelectKey();
+        setHasApiKey(true);
+    }
+  };
+
+  if (isCheckingKey) {
+      return <div className="min-h-screen bg-luxury-900 flex items-center justify-center text-luxury-gold animate-pulse">Загрузка системы...</div>;
+  }
+
+  if (!hasApiKey) {
+      return (
+        <div className="min-h-screen bg-luxury-900 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-luxury-gradient opacity-50 z-0"></div>
+            <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none"></div>
+            
+            <div className="z-10 text-center max-w-md space-y-8 animate-fade-in relative">
+                <div className="relative inline-block">
+                    <h1 className="text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-luxury-gold to-[#fff5d0] mb-2 tracking-wide drop-shadow-2xl">PIN EMPIRE</h1>
+                    <div className="absolute -bottom-2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-luxury-gold to-transparent opacity-50"></div>
+                </div>
+                <p className="text-gray-400 text-lg tracking-widest uppercase text-[10px]">AI Automation Suite for High-End Creators</p>
+                
+                <div className="bg-black/40 border border-gray-800 p-8 rounded-2xl backdrop-blur-xl shadow-2xl transform transition-all hover:scale-[1.02] hover:border-luxury-gold/30">
+                    <p className="mb-8 text-sm text-gray-300 leading-relaxed">
+                        Для доступа к стратегическому ИИ, анализу рынков и генерации визуалов требуется подключение ключа Google API.
+                    </p>
+                    <button 
+                        onClick={handleConnectApiKey}
+                        className="w-full bg-gradient-to-r from-luxury-gold to-[#b38728] text-luxury-900 font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)] flex items-center justify-center gap-3 group"
+                    >
+                        <span className="bg-white/20 p-1.5 rounded-full group-hover:rotate-90 transition-transform duration-500">
+                             <svg className="w-5 h-5 text-luxury-900" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </span>
+                        Connect Google API
+                    </button>
+                    <div className="mt-6 flex justify-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
+                        <span>Search Grounding</span>
+                        <span>•</span>
+                        <span>Vision AI</span>
+                        <span>•</span>
+                        <span>Secure</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+      );
+  }
 
   return (
     <Layout currentView={currentView} onNavigate={setCurrentView} toasts={toasts}>

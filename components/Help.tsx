@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const Help = () => {
@@ -81,6 +82,46 @@ export const Help = () => {
                 </ol>
             </p>
         </Section>
+      </div>
+
+      <div className="bg-black/40 p-8 rounded-xl border border-gray-700 space-y-6">
+        <h3 className="text-2xl font-serif text-white flex items-center gap-2">
+             <span className="text-luxury-gold">🚀</span> 7. Инструкция: Развертывание (Vercel)
+        </h3>
+        <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4 text-sm text-gray-400">
+                <h4 className="text-white font-bold uppercase tracking-wider">1. Подготовка</h4>
+                <ul className="list-disc list-inside space-y-2">
+                    <li>Убедитесь, что в <code>package.json</code> версия <code>@google/genai</code> установлена как <code>*</code> (для совместимости).</li>
+                    <li>В <code>vite.config.ts</code> должен быть прописан <code>define: process.env.API_KEY</code>.</li>
+                    <li>Сделайте <code>git push</code> вашего кода на GitHub.</li>
+                </ul>
+            </div>
+
+            <div className="space-y-4 text-sm text-gray-400">
+                <h4 className="text-white font-bold uppercase tracking-wider">2. Vercel Setup</h4>
+                <ol className="list-decimal list-inside space-y-2">
+                    <li>Создайте новый проект на Vercel и импортируйте репо.</li>
+                    <li>В разделе <strong>Environment Variables</strong> добавьте:
+                        <br/><code className="text-luxury-gold bg-black/50 px-1 rounded">Key: API_KEY</code>
+                        <br/><code className="text-luxury-gold bg-black/50 px-1 rounded">Value: [Ваш ключ Gemini]</code>
+                    </li>
+                    <li>Нажмите Deploy.</li>
+                </ol>
+            </div>
+            
+            <div className="col-span-full space-y-4 text-sm text-gray-400 pt-4 border-t border-gray-700">
+                 <h4 className="text-white font-bold uppercase tracking-wider">3. Вечная База Данных (Seed)</h4>
+                 <p>Vercel очищает данные при перезапуске. Чтобы сохранить ваши активы навсегда:</p>
+                 <ol className="list-decimal list-inside space-y-2">
+                    <li>Заполните товары/книги на работающем сайте.</li>
+                    <li>Зайдите в раздел <strong>"Мои Проекты"</strong> в этом приложении.</li>
+                    <li>Нажмите кнопку <span className="text-green-400 border border-green-500/30 px-1 rounded bg-green-900/10">📋 Код для Vercel</span>.</li>
+                    <li>Вставьте скопированный код в файл <code>services/db.ts</code> (в блоке <code>STATIC_DATA</code>).</li>
+                    <li>Сделайте новый <code>git push</code>. Теперь данные "вшиты" в сайт.</li>
+                 </ol>
+            </div>
+        </div>
       </div>
 
       <div className="bg-luxury-800 p-8 rounded-xl border border-gray-700">
