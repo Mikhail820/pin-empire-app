@@ -17,6 +17,7 @@ import { CalendarView } from './components/CalendarView';
 export default function App() {
   const [hasApiKey, setHasApiKey] = useState(false);
   const [isCheckingKey, setIsCheckingKey] = useState(true);
+  const [debugKey, setDebugKey] = useState<string>('');
 
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
   const [generatedPins, setGeneratedPins] = useState<PinData[]>([]);
@@ -58,12 +59,21 @@ export default function App() {
          if ((window as any).aistudio && (window as any).aistudio.hasSelectedApiKey) {
             const has = await (window as any).aistudio.hasSelectedApiKey();
             setHasApiKey(has);
+            setDebugKey('AI Studio Mode');
          } else {
-            // If not in AI Studio (e.g. Vercel or Local), we assume process.env.API_KEY is configured
-            setHasApiKey(true);
+            // If not in AI Studio, check if process.env.API_KEY is available (Vercel/Local)
+            // Vite replaces process.env.API_KEY with the actual value during build
+            const key = process.env.API_KEY;
+            if (key && key.length > 0) {
+                setHasApiKey(true);
+                setDebugKey(key.substring(0, 4) + '...');
+            } else {
+                setHasApiKey(false);
+                setDebugKey('Missing / Undefined');
+            }
          }
        } catch (e) {
-         setHasApiKey(true);
+         setHasApiKey(false);
        } finally {
          setIsCheckingKey(false);
        }
@@ -289,38 +299,63 @@ export default function App() {
   }
 
   if (!hasApiKey) {
+      // Determine if we are in AI Studio environment or standalone
+      const isAIStudio = (window as any).aistudio && (window as any).aistudio.openSelectKey;
+
       return (
         <div className="min-h-screen bg-luxury-900 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
             <div className="absolute inset-0 bg-luxury-gradient opacity-50 z-0"></div>
             <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none"></div>
             
-            <div className="z-10 text-center max-w-md space-y-8 animate-fade-in relative">
+            <div className="z-10 text-center max-w-lg space-y-8 animate-fade-in relative">
                 <div className="relative inline-block">
                     <h1 className="text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-luxury-gold to-[#fff5d0] mb-2 tracking-wide drop-shadow-2xl">PIN EMPIRE</h1>
                     <div className="absolute -bottom-2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-luxury-gold to-transparent opacity-50"></div>
                 </div>
                 <p className="text-gray-400 text-lg tracking-widest uppercase text-[10px]">AI Automation Suite for High-End Creators</p>
                 
-                <div className="bg-black/40 border border-gray-800 p-8 rounded-2xl backdrop-blur-xl shadow-2xl transform transition-all hover:scale-[1.02] hover:border-luxury-gold/30">
-                    <p className="mb-8 text-sm text-gray-300 leading-relaxed">
-                        Для доступа к стратегическому ИИ, анализу рынков и генерации визуалов требуется подключение ключа Google API.
-                    </p>
-                    <button 
-                        onClick={handleConnectApiKey}
-                        className="w-full bg-gradient-to-r from-luxury-gold to-[#b38728] text-luxury-900 font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)] flex items-center justify-center gap-3 group"
-                    >
-                        <span className="bg-white/20 p-1.5 rounded-full group-hover:rotate-90 transition-transform duration-500">
-                             <svg className="w-5 h-5 text-luxury-900" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                        </span>
-                        Connect Google API
-                    </button>
-                    <div className="mt-6 flex justify-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
-                        <span>Search Grounding</span>
-                        <span>•</span>
-                        <span>Vision AI</span>
-                        <span>•</span>
-                        <span>Secure</span>
-                    </div>
+                <div className="bg-black/40 border border-gray-800 p-8 rounded-2xl backdrop-blur-xl shadow-2xl transform transition-all">
+                    <h2 className="text-2xl font-serif text-white mb-4">Требуется API Ключ</h2>
+                    
+                    {isAIStudio ? (
+                        <>
+                            <p className="mb-8 text-sm text-gray-300 leading-relaxed">
+                                Для доступа к стратегическому ИИ, анализу рынков и генерации визуалов требуется подключение ключа Google API.
+                            </p>
+                            <button 
+                                onClick={handleConnectApiKey}
+                                className="w-full bg-gradient-to-r from-luxury-gold to-[#b38728] text-luxury-900 font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)] flex items-center justify-center gap-3 group"
+                            >
+                                <span className="bg-white/20 p-1.5 rounded-full group-hover:rotate-90 transition-transform duration-500">
+                                    <svg className="w-5 h-5 text-luxury-900" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                </span>
+                                Connect Google API
+                            </button>
+                        </>
+                    ) : (
+                        <div className="text-left space-y-4">
+                            <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p className="text-red-300 text-sm font-bold flex items-center gap-2">
+                                        <span className="text-xl">⚠️</span> Ключ не найден
+                                    </p>
+                                    <p className="text-[10px] text-gray-500 font-mono mt-1">Debug Status: {debugKey}</p>
+                                </div>
+                                <button onClick={() => window.location.reload()} className="bg-red-500/20 hover:bg-red-500/40 text-red-200 text-xs px-3 py-2 rounded transition-colors">
+                                    ↻ Обновить
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-2 mt-4">
+                                <p className="text-xs font-bold text-luxury-gold uppercase tracking-widest">Инструкция для Vercel:</p>
+                                <ol className="list-decimal list-inside text-sm text-gray-300 space-y-2">
+                                    <li>Зайдите на <b>vercel.com</b> &rarr; Settings &rarr; Environment Variables.</li>
+                                    <li>Убедитесь, что имя: <code>API_KEY</code> (без пробелов).</li>
+                                    <li>Важно: Нажмите <b>Deployments &rarr; Redeploy</b> (три точки). Без этого ключ не применится!</li>
+                                </ol>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

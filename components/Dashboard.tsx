@@ -87,13 +87,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ history, onNew, onLoadHist
         </div>
       </section>
 
-      {/* Advanced Settings Footer */}
+      {/* Advanced Settings Footer - MADE PROMINENT */}
       <div className="mt-12 pt-8 border-t border-white/5">
           <button 
             onClick={() => setShowTokenInput(!showTokenInput)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-white transition-colors bg-white/5 px-4 py-2 rounded-lg border border-white/5"
+            className={`flex items-center gap-3 text-sm font-bold transition-all px-6 py-4 rounded-xl border w-full md:w-auto justify-center md:justify-start ${
+                showTokenInput 
+                ? 'bg-luxury-gold text-luxury-900 border-luxury-gold shadow-lg shadow-luxury-gold/20' 
+                : 'text-luxury-gold border-luxury-gold/30 bg-black/40 hover:bg-luxury-gold/10'
+            }`}
           >
-             ⚙️ Центр Интеграций (Настройки API)
+             <span>🔑</span>
+             <span>API Ключи & Интеграции (Pinterest / Telegram)</span>
+             <svg className={`w-4 h-4 transition-transform duration-300 ${showTokenInput ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
 
           {showTokenInput && (
